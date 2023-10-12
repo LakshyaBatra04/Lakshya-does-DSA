@@ -2,6 +2,9 @@
 using namespace std;
 #include<stack>
 #include <queue>
+#include<vector>
+#include<map>
+ 
 class node{
     public :
         int data;
@@ -15,6 +18,20 @@ class node{
         this->right=NULL;
     }
 };
+class Node{
+    public :
+        int data;
+        Node* left;
+        Node* right;
+
+    //constructor
+    Node(int data){
+        this->data=data;
+        this->left=NULL;
+        this->right=NULL;
+    }
+};
+
 
 //code to fing height of binary tree
 int height(node*root){
@@ -80,6 +97,7 @@ bool isBalanced(node*root){
     }
     return false;
 }
+
 //for O(n) time complexity
 pair<bool,int> isBalancedFast(node*root){
     //base case
@@ -211,4 +229,237 @@ vector<int> zigZagTraversal(node*root){
         }
     }
     return result;
+}
+
+//Boundary traversal of Binary tree
+
+void leftTraversal(Node*root, vector<int> &ans){
+    if((root==NULL)||(root->left==NULL&&root->right==NULL)){
+        return ;
+    }
+    ans.push_back(root->data);
+    if(root->left){
+        leftTraversal(root->left,ans);
+    }
+    else{
+        leftTraversal(root->right,ans);
+    }
+        
+    }
+    //leaf node store karlo
+    void leafTraversal(Node*root,vector<int>& ans){
+        //base case
+        if(root==NULL){
+            return ;
+        }
+        if(root->left==NULL&&root->right==NULL){
+            ans.push_back(root->data);
+            return;
+        }
+        
+        leafTraversal(root->left,ans);
+        
+        leafTraversal(root->right,ans);
+        
+    }
+    //right vale store karado
+void rightTraversal(Node*root, vector<int>& ans){
+    if((root==NULL)||(root->left==NULL&&root->right==NULL)){
+        return ;
+    }
+    if(root->right){
+        rightTraversal(root->right,ans);
+    }
+    else{
+        rightTraversal(root->left,ans);
+    }
+    //wapas aagye store karlo
+    ans.push_back(root->data);
+    
+}
+vector <int> boundary(Node *root)
+{    
+    vector<int> ans;
+    if(root==NULL){
+        return ans;
+    }
+    ans.push_back(root->data);
+    
+    leftTraversal(root->left,ans);
+    
+    leafTraversal(root->left,ans);
+    leafTraversal(root->right,ans);
+    
+    rightTraversal(root->right,ans);
+    
+    return ans;
+}
+vector<int> verticalOrder(Node *root)
+{
+    //base casee
+    vector<int> ans;
+    //we need a queue to store the node, its horizontal distance from root and its level
+    queue< pair<Node*, pair<int,int> > > q;
+    //we need a map 
+    map<int, map<int, vector<int> > > nodes;
+    if(root==NULL){
+        return ans;
+    }
+    //q mei root push karo
+    q.push(make_pair(root,make_pair(0,0)));
+    
+    while(!q.empty()){
+        pair<Node*, pair<int ,int> > temp=q.front();
+        q.pop();
+        
+        int hd=temp.second.first;
+        int lvl=temp.second.second;
+        int data=temp.first->data;
+        
+        //map mei daala
+        nodes[hd][lvl].push_back(data);
+        if(temp.first->left){
+            q.push(make_pair(temp.first->left,make_pair(hd-1,lvl+1)));
+        }
+        if(temp.first->right){
+            q.push(make_pair(temp.first->right,make_pair(hd+1,lvl+1)));
+        }
+        
+    }
+    for(auto i:nodes){
+        for(auto j:i.second){
+            for(auto k:j.second){
+                ans.push_back(k);
+            }
+        }
+    }
+    return ans;
+}  
+// To find lowest common ancestor of two nodes
+
+Node* solve(Node*root,int n1, int n2){
+//base cases
+    if(root==NULL){
+        return NULL;
+    }
+    if(root->data==n1){
+        return root;
+    }
+    if(root->data==n2){
+        return root;
+    }
+    Node*leftAns=solve(root->left,n1,n2);
+    Node*rightAns=solve(root->right,n1,n2);
+
+    if(leftAns!=NULL&&rightAns!=NULL){
+        return root;
+    }
+    if(leftAns!=NULL&&rightAns==NULL){
+        return leftAns;
+    }
+    if(leftAns==NULL&&rightAns!=NULL){
+        return rightAns;
+    }
+    if(leftAns==NULL&&rightAns==NULL){
+        return NULL;
+    }
+
+}
+Node* lca(Node* root ,int n1 ,int n2 )
+{
+    //Your code here 
+    return solve(root,n1,n2);
+    
+}  
+void solve(Node*root,int k,int &count,vector<int>s){
+    if(root==NULL){
+        return;
+    }
+    s.push_back(root->data);
+    
+    solve(root->left,k,count,s);
+    solve(root->right,k,count,s);
+    
+    int sum=0;
+    for(int i=s.size()-1;i>=0;i--){
+        sum=sum+s[i];
+        if(sum==k){
+            count++;
+        }
+    }
+    s.pop_back();
+}
+int sumK(Node *root,int k)
+{
+    // code here 
+    vector<int>s;
+    int count=0;
+    solve(root,k,count,s);
+    return count;
+}
+
+//construct a binary tree from inorder+ preorder traversal
+int findPosition(int n, int arr[],int len){
+    for(int i=0;i<n;i++){
+        if(arr[i]==n){
+            return i;
+            break;
+        }
+    }
+    return -1;
+}
+Node* solve(int in[],int pre[],int index,int inStart, int inEnd, int len){
+    //base case
+    //agar pre ki index>=n ya instart>inend
+    if(index>=len||inStart>inEnd){
+        return NULL;
+    }
+    Node* root=new Node(pre[index]);
+    int position=findPosition(pre[index],in,len);
+    index++;
+    root->left=solve(in,pre,index,0,position-1,len);
+    root->left=solve(in,pre,index,position+1,len-1,len);
+
+    return root;
+}
+Node* constructTree(int in[], int pre[], int n){
+    Node*ans=solve(in,pre,0,0,n-1,n);
+    return ans;
+}
+
+//MORRIS Traversal for inorder  (traversal without using stacks or queues, better S.C)
+
+Node*findPre(Node*curr){
+    Node*temp=curr;
+    temp=temp->left;
+    while(temp->right!=NULL &&temp->right!=curr){
+        temp=temp->right;
+    }
+    return temp;
+}
+vector<int> morrisTraversal(Node*root){
+    vector<int> ans;
+
+    Node*current=root; 
+    while(current!=NULL){
+
+        if(current->left!=NULL){
+            Node* pre=findPre(current);
+            if(pre->right==NULL){
+                pre->right=current;
+                current=current->left;
+            }
+            else{
+                pre->right=NULL;
+                ans.push_back(current->data);
+                current=current->right;
+            }
+           
+        }
+        else{
+            ans.push_back(current->data);
+            current=current->right;
+        }
+    }
+    return ans;
 }
